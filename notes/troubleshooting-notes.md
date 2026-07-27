@@ -2,87 +2,116 @@
 
 ## Issue 1
 
-### Cannot access SRU folder
+Unable to locate the SRUM database.
 
-**Cause**
+### Cause
 
-PowerShell not running with Administrator privileges.
+Incorrect directory path or hidden system files not visible.
 
-**Resolution**
+### Resolution
 
-Run PowerShell as Administrator.
+Navigate to:
+
+```text
+C:\Windows\System32\sru
+```
+
+or verify using:
+
+```powershell
+Get-ChildItem "C:\Windows\System32\sru"
+```
 
 ---
 
 ## Issue 2
 
-### Copy-Item returns Access Denied
+Access denied while copying **SRUDB.dat**.
 
-**Cause**
+### Cause
 
-Insufficient permissions.
+Insufficient permissions or the database was in use.
 
-**Resolution**
+### Resolution
 
-Use an elevated PowerShell session.
+Run PowerShell as **Administrator** before copying the database.
 
 ---
 
 ## Issue 3
 
-### SRUDB.dat not found
+SRUDB.dat not found.
 
-**Cause**
+### Cause
 
-Incorrect folder path.
+The SRUM service had not yet created the database or the wrong path was used.
 
-**Correct Location**
+### Resolution
 
-```
-C:\Windows\System32\sru
+Generate normal Windows activity, then verify the folder contents:
+
+```powershell
+Get-ChildItem "C:\Windows\System32\sru"
 ```
 
 ---
 
 ## Issue 4
 
-### Get-FileHash fails
+Unable to copy the SRUM database.
 
-**Cause**
+### Cause
 
-Incorrect filename or path.
+Incorrect destination path or missing investigation folder.
 
-**Resolution**
+### Resolution
 
-Verify the copied file exists:
+Create the investigation folder first:
 
+```powershell
+mkdir C:\SRUMLab
 ```
-Get-ChildItem C:\SRUMLab
+
+Then copy:
+
+```powershell
+Copy-Item "C:\Windows\System32\sru\SRUDB.dat" "C:\SRUMLab\SRUDB_Copy.dat"
 ```
 
 ---
 
 ## Issue 5
 
-### Cannot delete investigation folder
+SHA256 hash could not be generated.
 
-**Cause**
+### Cause
 
-File handles still open.
+Incorrect file path or the copied database did not exist.
 
-**Resolution**
+### Resolution
 
-Close File Explorer windows and retry:
+Verify the copied file:
 
+```powershell
+Get-ChildItem C:\SRUMLab
 ```
-Remove-Item C:\SRUMLab -Recurse -Force
+
+Then calculate the hash:
+
+```powershell
+Get-FileHash C:\SRUMLab\SRUDB_Copy.dat
 ```
 
 ---
 
-## Lessons Learned
+## Issue 6
 
-- Always copy forensic artifacts before analysis.
-- Never modify the original evidence.
-- Verify evidence integrity immediately after acquisition.
-- Maintain consistent documentation throughout the investigation.
+Unexpected files present inside the SRUM directory.
+
+### Cause
+
+Windows maintains multiple Extensible Storage Engine (ESE) support files alongside the primary database.
+
+### Resolution
+
+This behavior is normal. Preserve the entire directory structure if performing a full forensic acquisition, while using **SRUDB.dat** as the primary artifact for this lab.
